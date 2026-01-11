@@ -1,385 +1,285 @@
 <!DOCTYPE html>
 <html lang="tr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>90 Günlük Sağlık Takip Paneli</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
-      body {
-        font-family: "Inter", sans-serif;
-      }
-      .completed-card {
-        background-color: #f0fdf4 !important;
-        border-color: #22c55e !important;
-        opacity: 0.9;
-      }
-      .completed-card .status-icon {
-        color: #22c55e;
-      }
-      .line-through-text {
-        text-decoration: line-through;
-        color: #94a3b8;
-      }
-      .card-transition {
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      .empty-state {
-        grid-column: 1 / -1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 5rem 2rem;
-        background: white;
-        border-radius: 1rem;
-        border: 2px dashed #e2e8f0;
-      }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .completed-card {
+            background-color: #f0fdf4 !important;
+            border-color: #22c55e !important;
+            opacity: 0.9;
+        }
+        .completed-card .status-icon {
+            color: #22c55e;
+        }
+        .line-through-text {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+        .card-transition {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .empty-state {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 5rem 2rem;
+            background: white;
+            border-radius: 1rem;
+            border: 2px dashed #e2e8f0;
+        }
     </style>
-  </head>
-  <body class="bg-gray-100 text-gray-900 min-h-screen pb-12">
+</head>
+<body class="bg-gray-100 text-gray-900 min-h-screen pb-12">
+
     <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16 items-center">
-          <div class="flex items-center gap-2">
-            <div
-              class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold"
-            >
-              90
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">90</div>
+                    <span class="text-xl font-bold tracking-tight">Sağlık Takip Sistemi</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-right hidden sm:block">
+                        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">İlerleme Durumu</div>
+                        <div class="text-sm font-black text-blue-600" id="stat-progress">0%</div>
+                    </div>
+                    <button onclick="resetData()" class="text-xs font-bold text-red-600 bg-red-50 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors">Sıfırla</button>
+                </div>
             </div>
-            <span class="text-xl font-bold tracking-tight"
-              >Sağlık Takip Sistemi</span
-            >
-          </div>
-          <div class="flex items-center gap-4">
-            <div class="text-right hidden sm:block">
-              <div
-                class="text-[10px] text-gray-500 font-bold uppercase tracking-wider"
-              >
-                İlerleme Durumu
-              </div>
-              <div class="text-sm font-black text-blue-600" id="stat-progress">
-                0%
-              </div>
-            </div>
-            <button
-              onclick="resetData()"
-              class="text-xs font-bold text-red-600 bg-red-50 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors"
-            >
-              Sıfırla
-            </button>
-          </div>
         </div>
-      </div>
-      <div class="w-full bg-gray-100 h-1.5">
-        <div
-          id="progress-bar"
-          class="bg-blue-600 h-1.5 transition-all duration-700"
-          style="width: 0%"
-        ></div>
-      </div>
+        <div class="w-full bg-gray-100 h-1.5">
+            <div id="progress-bar" class="bg-blue-600 h-1.5 transition-all duration-700" style="width: 0%"></div>
+        </div>
     </nav>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-      <div
-        class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4"
-      >
-        <div
-          class="flex bg-white p-1 rounded-xl shadow-sm border border-gray-200 w-full md:w-auto"
-        >
-          <button
-            onclick="setFilter('all')"
-            id="btn-all"
-            class="flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold bg-gray-900 text-white transition-all"
-          >
-            Hepsi
-          </button>
-          <button
-            onclick="setFilter('pending')"
-            id="btn-pending"
-            class="flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all"
-          >
-            Kalanlar
-          </button>
-          <button
-            onclick="setFilter('completed')"
-            id="btn-completed"
-            class="flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all"
-          >
-            Tamamlananlar
-          </button>
+        
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <div class="flex bg-white p-1 rounded-xl shadow-sm border border-gray-200 w-full md:w-auto">
+                <button onclick="setFilter('all')" id="btn-all" class="flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold bg-gray-900 text-white transition-all">Hepsi</button>
+                <button onclick="setFilter('pending')" id="btn-pending" class="flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all">Kalanlar</button>
+                <button onclick="setFilter('completed')" id="btn-completed" class="flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all">Tamamlananlar</button>
+            </div>
+            <div class="relative w-full md:w-80">
+                <input type="text" id="search-input" oninput="handleSearch()" placeholder="Örn: Somon, Squat, 12 Ocak..." 
+                    class="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none shadow-sm transition-all">
+            </div>
         </div>
-        <div class="relative w-full md:w-80">
-          <input
-            type="text"
-            id="search-input"
-            oninput="handleSearch()"
-            placeholder="Yemek, gün veya egzersiz ara..."
-            class="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none shadow-sm transition-all"
-          />
-        </div>
-      </div>
 
-      <div
-        id="program-grid"
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-      >
-        <!-- JavaScript İçeriği -->
-      </div>
+        <div id="program-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- JavaScript Content -->
+        </div>
     </main>
 
     <script>
-      const generateProgram = () => {
-        // Başlangıç tarihi 12 Ocak 2026'ya çekildi
-        const startDate = new Date("2026-01-12");
-        const plans = [];
+        const generateProgram = () => {
+            const startDate = new Date("2026-01-12");
+            const plans = [];
+            
+            // Yemek havuzları - Çeşitliliği artırmak için farklı uzunluklarda listeler
+            const breakfasts = [
+                "2 rafadan yumurta, 5 tam ceviz, bol maydanoz-dereotu",
+                "Az yağlı lor peyniri, 1 adet kapya biber, 7 zeytin, 1 dilim siyez ekmeği",
+                "Ispanaklı ve mantarlı omlet (2 yumurta), bol roka",
+                "Yulaf ezmesi, 1 tatlı kaşığı keten tohumu, yarım yeşil elma, tarçın",
+                "Cılbır (2 haşlanmış yumurta üzerine sarımsaklı süzme yoğurt), taze nane",
+                "Çırpılmış yumurta, 3 tam ceviz, bol domates ve salatalık",
+                "Menemen (bol biberli), lor peyniri, 5 adet fındık"
+            ];
 
-        const nutritionPatterns = [
-          {
-            k: "2 rafadan yumurta, 5 tam ceviz, bol yeşillik",
-            o: "Zeytinyağlı enginar, ev yoğurdu",
-            a: "1 avuç yaban mersini",
-            aks: "Fırında palamut, roka salatası",
-          },
-          {
-            k: "Lor peyniri, domates, kapya biber, 1 dilim siyez ekmeği",
-            o: "Mercimek çorbası, mevsim salatası",
-            a: "1 bardak ayran",
-            aks: "Etli ıspanak (pirinçsiz), yoğurt",
-          },
-          {
-            k: "Yulaf ezmesi (su/süt ile), kabak çekirdeği, elma",
-            o: "Zeytinyağlı taze fasulye, yeşil salata",
-            a: "1 adet büyük boy havuç",
-            aks: "Izgara tavuk göğsü, haşlanmış brokoli",
-          },
-          {
-            k: "Cılbır (sarımsaklı yoğurtlu yumurta), bol taze nane",
-            o: "Nohut yemeği, 1 kase cacık",
-            a: "2 kare bitter çikolata (%85+)",
-            aks: "Zeytinyağlı pırasa, az miktar lor",
-          },
-          {
-            k: "Bol biberli menemen, 7 adet az tuzlu zeytin",
-            o: "Unsuz kabak mücver, 1 bardak ayran",
-            a: "1 avuç çiğ badem",
-            aks: "Haşlanmış mercimekli piyaz (bol soğanlı)",
-          },
-        ];
+            const lunches = [
+                "Zeytinyağlı enginar (garnitürsüz), 1 kase ev yoğurdu",
+                "Kırmızı mercimek çorbası, bol yeşil salata (limonlu)",
+                "Zeytinyağlı taze fasulye, 1 kase cacık (kuru naneli)",
+                "Nohut yemeği, mevsim salatası, 3 kaşık haşlanmış karabuğday",
+                "Fırında unsuz kabak mücver, 1 bardak ayran",
+                "Yeşil mercimek salatası (bol soğanlı ve maydanozlu)",
+                "Zeytinyağlı kereviz, 1 kase yoğurt",
+                "Etli pırasa yemeği (pirinçsiz), çoban salata"
+            ];
 
-        const exercisePatterns = [
-          {
-            t: "Mobilite (Eklem Sağlığı)",
-            d: "10 dk boyun/omuz/bel esnetme + 5 dk 20-20-20 kuralı göz odağı.",
-          },
-          {
-            t: "Kuvvet Antrenmanı",
-            d: "3 set 15 tekrar Squat (Çömelme), 3 set 10 Şınav, 45 saniye statik Plank.",
-          },
-          {
-            t: "Düşük Yoğunluklu Kardiyo",
-            d: "30 dakika tempolu yürüyüş (Kalp ritmi hafif yüksek).",
-          },
-          {
-            t: "Postür ve Core",
-            d: "3 set 15 Glute Bridge (Kalça Kaldırma), 3 set 12 Superman (Sırt), 1 dk Plank.",
-          },
-          {
-            t: "HIIT (Yağ Yakımı)",
-            d: "15 dakika boyunca: 40 sn yüksek tempo Jumping Jack + 20 sn tam dinlenme.",
-          },
-        ];
+            const snacks = [
+                "1 avuç yaban mersini",
+                "1 adet orta boy havuç",
+                "2 kare bitter çikolata (%85+)",
+                "10 adet çiğ badem",
+                "1 adet portakal veya greyfurt",
+                "2 adet tam ceviz"
+            ];
 
-        for (let i = 0; i < 90; i++) {
-          const currentDate = new Date(startDate);
-          currentDate.setDate(startDate.getDate() + i);
-          plans.push({
-            gun: i + 1,
-            tarih: currentDate.toLocaleDateString("tr-TR", {
-              day: "2-digit",
-              month: "long",
-              year: "numeric",
-            }),
-            beslenme: nutritionPatterns[i % nutritionPatterns.length],
-            egzersiz: exercisePatterns[i % exercisePatterns.length],
-          });
-        }
-        return plans;
-      };
+            const dinners = [
+                "Izgara Somon (Omega-3), haşlanmış brokoli",
+                "Fırında köfte (yağsız dana eti), közlenmiş patlıcan salatası",
+                "Fırında Palamut veya Lüfer, bol roka ve tere salatası",
+                "Izgara tavuk göğsü, fırınlanmış kuşkonmaz veya Brüksel lahanası",
+                "Etli bamya veya taze bezelye yemeği, az miktar süzme yoğurt",
+                "Izgara Cupra veya Levrek, mor lahana salatası",
+                "Hindi füme salatası (avokadolu ve bol yeşillikli)",
+                "Kıymalı ıspanak kavurması, 1 kase yoğurt",
+                "Izgara Sardalya (Omega-3), soğanlı marul salatası"
+            ];
 
-      const programData = generateProgram();
-      let completedDays =
-        JSON.parse(localStorage.getItem("completed_days_90_v2")) || [];
-      let currentFilter = "all";
-      let searchQuery = "";
+            const exercises = [
+                { t: "Mobilite ve Eklem Hareketliliği", d: "15 dk eklem açma (boyun, omuz, kalça) + 5 dk 20-20-20 kuralı göz egzersizi." },
+                { t: "Kuvvet: Alt Vücut Odaklı", d: "3 set 15 Squat, 3 set 12 Lunge (her bacak), 60 sn statik Wall Sit." },
+                { t: "Kuvvet: Üst Vücut & Core", d: "3 set 12 Şınav (Push-up), 3 set 15 Plank-to-Pushup, 45 sn Side Plank." },
+                { t: "Fonksiyonel Core & Postür", d: "3 set 20 Mekik (Crunch), 3 set 15 Superman (sırt), 90 sn toplam Plank." },
+                { t: "Kardiyo: Yağ Yakımı (HIIT)", d: "20 dakika: 30 sn yüksek tempo yerinde koşu + 30 sn aktif dinlenme (yürüyüş)." }
+            ];
 
-      const updateStats = () => {
-        const total = programData.length;
-        const completed = completedDays.length;
-        const percentage = Math.round((completed / total) * 100);
-        document.getElementById("progress-bar").style.width = percentage + "%";
-        document.getElementById("stat-progress").innerText = "%" + percentage;
-      };
+            for (let i = 0; i < 90; i++) {
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + i);
+                
+                plans.push({
+                    gun: i + 1,
+                    tarih: currentDate.toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' }),
+                    beslenme: {
+                        k: breakfasts[i % breakfasts.length],
+                        o: lunches[i % lunches.length],
+                        a: snacks[i % snacks.length],
+                        aks: dinners[i % dinners.length]
+                    },
+                    egzersiz: exercises[i % exercises.length]
+                });
+            }
+            return plans;
+        };
 
-      const toggleDay = (dayNum) => {
-        const index = completedDays.indexOf(dayNum);
-        if (index === -1) {
-          completedDays.push(dayNum);
-        } else {
-          completedDays.splice(index, 1);
-        }
-        localStorage.setItem(
-          "completed_days_90_v2",
-          JSON.stringify(completedDays)
-        );
-        render();
-      };
+        const programData = generateProgram();
+        let completedDays = JSON.parse(localStorage.getItem('completed_days_90_final')) || [];
+        let currentFilter = 'all';
+        let searchQuery = '';
 
-      const setFilter = (filter) => {
-        currentFilter = filter;
-        document.querySelectorAll('[id^="btn-"]').forEach((btn) => {
-          btn.classList.remove("bg-gray-900", "text-white");
-          btn.classList.add("text-gray-500", "hover:bg-gray-50");
-        });
-        const activeBtn = document.getElementById("btn-" + filter);
-        activeBtn.classList.remove("text-gray-500", "hover:bg-gray-50");
-        activeBtn.classList.add("bg-gray-900", "text-white");
-        render();
-      };
+        const updateStats = () => {
+            const total = programData.length;
+            const completed = completedDays.length;
+            const percentage = Math.round((completed / total) * 100);
+            document.getElementById('progress-bar').style.width = percentage + '%';
+            document.getElementById('stat-progress').innerText = '%' + percentage;
+        };
 
-      const handleSearch = () => {
-        searchQuery = document
-          .getElementById("search-input")
-          .value.toLowerCase();
-        render();
-      };
+        const toggleDay = (dayNum) => {
+            const index = completedDays.indexOf(dayNum);
+            if (index === -1) {
+                completedDays.push(dayNum);
+            } else {
+                completedDays.splice(index, 1);
+            }
+            localStorage.setItem('completed_days_90_final', JSON.stringify(completedDays));
+            render();
+        };
 
-      const resetData = () => {
-        if (confirm("Tüm verileriniz kalıcı olarak silinecek. Emin misiniz?")) {
-          completedDays = [];
-          localStorage.removeItem("completed_days_90_v2");
-          render();
-        }
-      };
+        const setFilter = (filter) => {
+            currentFilter = filter;
+            document.querySelectorAll('[id^="btn-"]').forEach(btn => {
+                btn.classList.remove('bg-gray-900', 'text-white');
+                btn.classList.add('text-gray-500', 'hover:bg-gray-50');
+            });
+            const activeBtn = document.getElementById('btn-' + filter);
+            activeBtn.classList.remove('text-gray-500', 'hover:bg-gray-50');
+            activeBtn.classList.add('bg-gray-900', 'text-white');
+            render();
+        };
 
-      const render = () => {
-        const grid = document.getElementById("program-grid");
-        grid.innerHTML = "";
+        const handleSearch = () => {
+            searchQuery = document.getElementById('search-input').value.toLowerCase();
+            render();
+        };
 
-        const filteredData = programData.filter((item) => {
-          const isCompleted = completedDays.includes(item.gun);
-          const matchesFilter =
-            currentFilter === "all" ||
-            (currentFilter === "completed" && isCompleted) ||
-            (currentFilter === "pending" && !isCompleted);
+        const resetData = () => {
+            if (confirm('Tüm ilerlemeniz kalıcı olarak silinecek. Onaylıyor musunuz?')) {
+                completedDays = [];
+                localStorage.removeItem('completed_days_90_final');
+                render();
+            }
+        };
 
-          const textPool =
-            `${item.gun} ${item.tarih} ${item.egzersiz.t} ${item.egzersiz.d}`.toLowerCase();
-          const matchesSearch = textPool.includes(searchQuery);
+        const render = () => {
+            const grid = document.getElementById('program-grid');
+            grid.innerHTML = '';
 
-          return matchesFilter && matchesSearch;
-        });
+            const filteredData = programData.filter(item => {
+                const isCompleted = completedDays.includes(item.gun);
+                const matchesFilter = 
+                    currentFilter === 'all' || 
+                    (currentFilter === 'completed' && isCompleted) || 
+                    (currentFilter === 'pending' && !isCompleted);
+                
+                const textPool = `${item.gun} ${item.tarih} ${item.egzersiz.t} ${item.beslenme.k} ${item.beslenme.aks} ${item.beslenme.o}`.toLowerCase();
+                const matchesSearch = textPool.includes(searchQuery);
 
-        if (filteredData.length === 0) {
-          const empty = document.createElement("div");
-          empty.className = "empty-state shadow-sm";
-          empty.innerHTML = `
+                return matchesFilter && matchesSearch;
+            });
+
+            if (filteredData.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'empty-state shadow-sm';
+                empty.innerHTML = `
                     <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-400">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
-                    <h3 class="text-gray-800 font-bold">Kayıt Bulunamadı</h3>
-                    <p class="text-gray-500 text-sm mt-1">Arama terimini veya filtreyi değiştirerek tekrar deneyin.</p>
+                    <h3 class="text-gray-800 font-bold text-lg">Sonuç Bulunamadı</h3>
+                    <p class="text-gray-500 text-sm mt-1">Arama terimini değiştirerek tekrar deneyin.</p>
                 `;
-          grid.appendChild(empty);
-        } else {
-          filteredData.forEach((item) => {
-            const isCompleted = completedDays.includes(item.gun);
-            const card = document.createElement("div");
-            card.className = `card-transition bg-white rounded-2xl border-2 p-6 cursor-pointer select-none shadow-sm flex flex-col ${
-              isCompleted
-                ? "completed-card"
-                : "border-gray-100 hover:border-blue-200 hover:shadow-md"
-            }`;
-            card.onclick = () => toggleDay(item.gun);
+                grid.appendChild(empty);
+            } else {
+                filteredData.forEach(item => {
+                    const isCompleted = completedDays.includes(item.gun);
+                    const card = document.createElement('div');
+                    card.className = `card-transition bg-white rounded-2xl border-2 p-6 cursor-pointer select-none shadow-sm flex flex-col ${isCompleted ? 'completed-card' : 'border-gray-100 hover:border-blue-200 hover:shadow-md'}`;
+                    card.onclick = () => toggleDay(item.gun);
 
-            card.innerHTML = `
+                    card.innerHTML = `
                         <div class="flex justify-between items-start mb-5">
                             <div>
-                                <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">GÜN ${
-                                  item.gun
-                                }</span>
-                                <h3 class="text-lg font-bold text-gray-800 ${
-                                  isCompleted ? "line-through-text" : ""
-                                }">${item.tarih}</h3>
+                                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">GÜN ${item.gun}</span>
+                                <h3 class="text-lg font-bold text-gray-800 ${isCompleted ? 'line-through-text' : ''}">${item.tarih}</h3>
                             </div>
                             <div class="status-icon">
-                                ${
-                                  isCompleted
-                                    ? '<svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>'
-                                    : '<div class="w-7 h-7 border-2 border-gray-200 rounded-full bg-gray-50"></div>'
-                                }
+                                ${isCompleted ? 
+                                    '<svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>' : 
+                                    '<div class="w-7 h-7 border-2 border-gray-200 rounded-full bg-gray-50"></div>'}
                             </div>
                         </div>
                         
                         <div class="space-y-5 flex-grow">
                             <div class="space-y-3">
-                                <div class="flex items-center gap-2 text-[11px] font-bold text-blue-500 uppercase tracking-wider">
+                                <div class="flex items-center gap-2 text-[11px] font-bold text-blue-600 uppercase tracking-wider">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                                    Beslenme Planı
+                                    Beslenme Çizelgesi
                                 </div>
                                 <div class="grid grid-cols-1 gap-1.5 text-sm">
-                                    <p class="${
-                                      isCompleted
-                                        ? "line-through-text"
-                                        : "text-gray-700"
-                                    }"><span class="font-bold text-gray-400 text-[10px] w-6 inline-block">S:</span> ${
-              item.beslenme.k
-            }</p>
-                                    <p class="${
-                                      isCompleted
-                                        ? "line-through-text"
-                                        : "text-gray-700"
-                                    }"><span class="font-bold text-gray-400 text-[10px] w-6 inline-block">Ö:</span> ${
-              item.beslenme.o
-            }</p>
-                                    <p class="${
-                                      isCompleted
-                                        ? "line-through-text"
-                                        : "text-gray-700"
-                                    }"><span class="font-bold text-gray-400 text-[10px] w-6 inline-block">A:</span> ${
-              item.beslenme.a
-            }</p>
-                                    <p class="${
-                                      isCompleted
-                                        ? "line-through-text"
-                                        : "text-gray-700"
-                                    }"><span class="font-bold text-gray-400 text-[10px] w-6 inline-block">AK:</span> ${
-              item.beslenme.aks
-            }</p>
+                                    <p class="${isCompleted ? 'line-through-text' : 'text-gray-700'}"><span class="font-bold text-gray-400 text-[10px] w-6 inline-block">S:</span> ${item.beslenme.k}</p>
+                                    <p class="${isCompleted ? 'line-through-text' : 'text-gray-700'}"><span class="font-bold text-gray-400 text-[10px] w-6 inline-block">Ö:</span> ${item.beslenme.o}</p>
+                                    <p class="${isCompleted ? 'line-through-text' : 'text-gray-700'}"><span class="font-bold text-gray-400 text-[10px] w-6 inline-block">A:</span> ${item.beslenme.a}</p>
+                                    <p class="${isCompleted ? 'line-through-text' : 'text-gray-700'}"><span class="font-bold text-gray-400 text-[10px] w-6 inline-block">AK:</span> ${item.beslenme.aks}</p>
                                 </div>
                             </div>
 
                             <div class="pt-4 border-t border-gray-100 space-y-3">
-                                <div class="flex items-center gap-2 text-[11px] font-bold text-orange-500 uppercase tracking-wider">
+                                <div class="flex items-center gap-2 text-[11px] font-bold text-orange-600 uppercase tracking-wider">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                     ${item.egzersiz.t}
                                 </div>
-                                <p class="text-xs leading-relaxed font-medium ${
-                                  isCompleted
-                                    ? "line-through-text"
-                                    : "text-gray-600"
-                                }">${item.egzersiz.d}</p>
+                                <p class="text-xs leading-relaxed font-medium ${isCompleted ? 'line-through-text' : 'text-gray-600'}">${item.egzersiz.d}</p>
                             </div>
                         </div>
                     `;
-            grid.appendChild(card);
-          });
-        }
-        updateStats();
-      };
+                    grid.appendChild(card);
+                });
+            }
+            updateStats();
+        };
 
-      render();
+        render();
     </script>
-  </body>
+</body>
 </html>
