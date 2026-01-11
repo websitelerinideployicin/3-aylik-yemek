@@ -1,285 +1,790 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>90 Günlük Sağlık Takip Paneli</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Protocol | Bilişsel Performans Takibi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .completed-card {
-            background-color: #f0fdf4 !important;
-            border-color: #22c55e !important;
-            opacity: 0.9;
+        :root {
+            /* Renk Paleti: Siyah, Beyaz ve Keskin Yeşil (Gradient yok) */
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --surface-hover: #1c1c1c;
+            --primary: #00df81;
+            --primary-muted: rgba(0, 223, 129, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --border: #262626;
+            --danger: #ff4444;
+            --white: #ffffff;
         }
-        .completed-card .status-icon {
-            color: #22c55e;
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
-        .line-through-text {
-            text-decoration: line-through;
-            color: #94a3b8;
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem;
         }
-        .card-transition {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        .empty-state {
-            grid-column: 1 / -1;
+
+        /* --- Header --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo-area h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .logo-area span {
+            color: var(--primary);
+        }
+
+        .settings-box {
+            text-align: left;
+        }
+
+        .settings-box label {
+            display: block;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .settings-box input {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--primary);
+            padding: 0.6rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .settings-box input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        /* Slide Animation & Gesture Area */
+        .meals-container {
             display: flex;
             flex-direction: column;
+            gap: 2rem;
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .meals-container:active {
+            cursor: grabbing;
+        }
+
+        .meals-container.sliding-left {
+            transform: translateX(-50px);
+            opacity: 0;
+        }
+
+        .meals-container.sliding-right {
+            transform: translateX(50px);
+            opacity: 0;
+        }
+
+        .current-day-num {
+            font-size: 5rem;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+
+        /* --- Layout --- */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 2.5rem;
+        }
+
+        /* --- Content Area --- */
+        #mainContent {
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .day-info {
+            display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 1rem;
+        }
+
+        .phase-tag {
+            background: var(--primary);
+            color: var(--bg);
+            padding: 0.3rem 0.8rem;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            border-radius: 2px;
+        }
+
+        .day-title {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .meal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .meal-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .meal-card:hover {
+            border-color: var(--primary);
+        }
+
+        .meal-type {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .meal-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .notes-section {
+            background: #1a1a1a;
+            border: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .notes-section i {
+            color: var(--primary);
+        }
+
+        .notes-content h4 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.3rem;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .tracking-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .day-list {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .day-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .day-item:hover {
+            background: var(--surface-hover);
+        }
+
+        .day-item.active {
+            background: var(--primary-muted);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .day-item.completed {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .btn-track {
+            width: 100%;
+            background: var(--primary);
+            color: var(--bg);
+            border: none;
+            padding: 1.2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: transform 0.1s;
+        }
+
+        .btn-track:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            width: 100%;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 0.8rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        /* --- Mobile Optimization (Meals on top) --- */
+        @media (max-width: 900px) {
+            body {
+                padding: 1rem;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.5rem;
+            }
+
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .meal-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                order: 2;
+            }
+
+            .meals-container {
+                order: 1;
+            }
+
+            .day-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* --- Navigation --- */
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--primary);
+        }
+
+        .burger-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 0.5rem;
+            z-index: 1001;
+        }
+
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 250px;
+            height: 100vh;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            z-index: 1000;
             padding: 5rem 2rem;
-            background: white;
-            border-radius: 1rem;
-            border: 2px dashed #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            transition: right 0.3s ease;
+        }
+
+        .mobile-menu.open {
+            right: 0;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+        }
+
+        .overlay.open {
+            display: block;
+        }
+
+        /* --- Mobile Optimization --- */
+        @media (max-width: 900px) {
+            .burger-btn {
+                display: block;
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.5rem;
+                padding-top: 1rem;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-900 min-h-screen pb-12">
 
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">90</div>
-                    <span class="text-xl font-bold tracking-tight">Sağlık Takip Sistemi</span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="text-right hidden sm:block">
-                        <div class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">İlerleme Durumu</div>
-                        <div class="text-sm font-black text-blue-600" id="stat-progress">0%</div>
-                    </div>
-                    <button onclick="resetData()" class="text-xs font-bold text-red-600 bg-red-50 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors">Sıfırla</button>
-                </div>
+<div class="overlay" id="menuOverlay"></div>
+<div class="mobile-menu" id="mobileMenu">
+    <a href="index.html" class="nav-link active">Diyet Planı</a>
+    <a href="shopping.html" class="nav-link">Alışveriş Listesi</a>
+</div>
+
+<button class="burger-btn" id="burgerBtn">
+    <i data-lucide="menu"></i>
+</button>
+
+<div class="container">
+    <header>
+        <div class="logo-area">
+            <h1>PROTO<span>COL</span></h1>
+            <p style="font-size: 0.7rem; color: var(--text-muted); letter-spacing: 1px;">COGNITIVE PERFORMANCE / 90
+                DAYS</p>
+        </div>
+
+        <nav class="nav-menu">
+            <a href="index.html" class="nav-link active">Diyet Planı</a>
+            <a href="shopping.html" class="nav-link">Alışveriş Listesi</a>
+        </nav>
+
+        <div class="settings-box">
+            <label>BAŞLANGIÇ TARİHİ</label>
+            <input type="date" id="startInput">
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <main class="meals-container" id="mainContent">
+            <!-- JS will inject meals here -->
+        </main>
+
+        <aside class="sidebar">
+            <div class="tracking-card">
+                <p style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">AKTİF GÜN</p>
+                <div class="current-day-num" id="currentDayVal">1</div>
+                <p id="currentDateDisplay" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+                </p>
+
+                <button class="btn-track" id="mainTrackBtn">TAMAMLANDI</button>
+                <button class="btn-secondary" id="resetBtn" style="margin-top: 0.5rem; opacity: 0.5;">İlerlemeyi
+                    Sıfırla</button>
             </div>
-        </div>
-        <div class="w-full bg-gray-100 h-1.5">
-            <div id="progress-bar" class="bg-blue-600 h-1.5 transition-all duration-700" style="width: 0%"></div>
-        </div>
-    </nav>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        
-        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-            <div class="flex bg-white p-1 rounded-xl shadow-sm border border-gray-200 w-full md:w-auto">
-                <button onclick="setFilter('all')" id="btn-all" class="flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold bg-gray-900 text-white transition-all">Hepsi</button>
-                <button onclick="setFilter('pending')" id="btn-pending" class="flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all">Kalanlar</button>
-                <button onclick="setFilter('completed')" id="btn-completed" class="flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all">Tamamlananlar</button>
+            <div class="day-list" id="dayPicker">
+                <!-- JS will inject day list -->
             </div>
-            <div class="relative w-full md:w-80">
-                <input type="text" id="search-input" oninput="handleSearch()" placeholder="Örn: Somon, Squat, 12 Ocak..." 
-                    class="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none shadow-sm transition-all">
-            </div>
-        </div>
+        </aside>
+    </div>
+</div>
 
-        <div id="program-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- JavaScript Content -->
-        </div>
-    </main>
+<script>
+    const appData = [
+        { "gun": 1, "kahvalti": "2 haşlanmış yumurta, 3 tam ceviz içi, bol maydanoz-dereotu, az tuzlu beyaz peynir, 5 zeytin", "ogle_yemegi": "Zeytinyağlı mercimek yemeği, bol limonlu mevsim salatası", "ara_ogun": "1 porsiyon yaban mersini veya 1 adet mevsim meyvesi", "aksam_yemegi": "Izgara Levrek veya Hamsi (fırın), haşlanmış brokoli (zeytinyağı ve sarımsaklı)", "notlar": "Günde en az 2.5 litre su içilmeli." },
+        { "gun": 2, "kahvalti": "Yulaf ezmesi, içine 1 tatlı kaşığı chia tohumu, tarçın ve çiğ badem", "ogle_yemegi": "Izgara tavuk göğsü, az miktar bulgur pilavı, yoğurt (kefir yerine)", "ara_ogun": "2 kare bitter çikolata (%70+ kakao)", "aksam_yemegi": "Zeytinyağlı ıspanak, üzerine sarımsaklı yoğurt", "notlar": "Zerdeçal tüketimine özen gösterin." },
+        { "gun": 3, "kahvalti": "Sebzeli omlet (ıspanak veya mantar), 3 tam ceviz, tam buğday ekmeği (1 dilim)", "ogle_yemegi": "Nohut yemeği, az miktar kahverengi pirinç veya bulgur", "ara_ogun": "1 fincan yeşil çay, 10 adet çiğ fındık", "aksam_yemegi": "Fırında kabak ve havuç (zeytinyağlı), ızgara köfte (yağsız)", "notlar": "Omega-3 için ceviz kritiktir." },
+        { "gun": 4, "kahvalti": "Menemen (soğanlı - beyin kan akışı için yararlı), beyaz peynir, tam tahıllı ekmek", "ogle_yemegi": "Fırında somon veya palamut, roka salatası", "ara_ogun": "Yarım avokado (limonlu ve karabiberli)", "aksam_yemegi": "Etli kuru fasulye (az yağlı), cacık (dereotu ilaveli)", "notlar": "Dereotu sinir sistemini destekler." },
+        { "gun": 5, "kahvalti": "1 adet yumurta, 1 dilim tam buğday ekmeği üzerine ezilmiş avokado, ceviz", "ogle_yemegi": "Zeytinyağlı pırasa veya kereviz yemeği, yoğurt", "ara_ogun": "1 adet elma, 5-6 adet çiğ badem", "aksam_yemegi": "Izgara hindi göğsü, bol yeşil salata", "notlar": "Kereviz bilişsel sağlık için apigenin içerir." },
+        { "gun": 6, "kahvalti": "Mantar ve soğanlı omlet, 5 adet zeytin, bol yeşillik", "ogle_yemegi": "Mercimek çorbası, ızgara sebze tabağı", "ara_ogun": "1 bardak domates suyu (likopen kaynağı)", "aksam_yemegi": "Fırında uskumru veya sardalya, soğanlı ve sumaklı salata", "notlar": "Soğan quercetin içerir, beyni korur." },
+        { "gun": 7, "kahvalti": "Yulaf lapası (su veya bitkisel süt ile), içine kabak çekirdeği ve tarçın", "ogle_yemegi": "Zeytinyağlı taze fasulye, az bulgur, yoğurt", "ara_ogun": "3 adet kuru erik, 2 tam ceviz", "aksam_yemegi": "Haşlanmış tavuk, fırınlanmış pancar (nitrat kaynağı - kan akışını artırır)", "notlar": "Pancar bilişsel performansı destekler." },
+        { "gun": 8, "kahvalti": "2 adet haşlanmış yumurta, bol lor peyniri, çörek otu, maydanoz", "ogle_yemegi": "Ton balıklı salata (mısır yerine kapari veya zeytin ile)", "ara_ogun": "1 fincan sade kahve (odaklanma için), 1 adet küçük muz", "aksam_yemegi": "Kıymalı mercimek yemeği, cacık", "notlar": "Çörek otu nöroprotektiftir." },
+        { "gun": 9, "kahvalti": "Peynirli tam buğday tost, 3 tam ceviz, domates-salatalık", "ogle_yemegi": "Ispanaklı veya lorlu börek (ev yapımı, az yağlı), ayran", "ara_ogun": "10 adet çiğ antep fıstığı (tuzsuz)", "aksam_yemegi": "Izgara bonfile veya antrikot (haftada 1-2 kez), buharda kuşkonmaz veya brokoli", "notlar": "Kırmızı et B12 vitamini sağlar." },
+        { "gun": 10, "kahvalti": "Yulaf ezmesi, üzerine 1 yemek kaşığı keten tohumu ve çilek/yaban mersini", "ogle_yemegi": "Zeytinyağlı bamya veya enginar, yoğurt", "ara_ogun": "2 kare bitter çikolata, yeşil tea", "aksam_yemegi": "Fırın levrek, bol yeşillikli roka salatası", "notlar": "Enginar karaciğer ve dolaylı olarak beyin sağlığı için kritiktir." },
+        { "gun": 11, "kahvalti": "Dereotlu yumurta (omlet), lor peyniri, ceviz", "ogle_yemegi": "Tavuk suyu çorbası (şehriyesiz, bol etli), mevsim salatası", "ara_ogun": "1 avuç kabak çekirdeği (çinko kaynağı)", "aksam_yemegi": "Zeytinyağlı barbunya, az miktar bulgur pilavı", "notlar": "Çinko hafıza fonksiyonlarını destekler." },
+        { "gun": 12, "kahvalti": "1 haşlanmış yumurta, 1 dilim süzme peynir, 5 zeytin, tam buğday ekmeği", "ogle_yemegi": "Fırın mücver (az unlu), yoğurt", "ara_ogun": "1 adet portakal veya greyfurt", "aksam_yemegi": "Izgara köfte, piyaz (bol soğanlı ve maydanozlu)", "notlar": "C vitamini beyin sisini azaltır." },
+        { "gun": 13, "kahvalti": "Muzlu ve cevizli yulaf lapası, üzerine tarçın", "ogle_yemegi": "Izgara hindi salatası, ceviz içi ilaveli", "ara_ogun": "1 bardak taze sıkılmış nar suyu", "aksam_yemegi": "Zeytinyağlı karnabahar, yoğurt", "notlar": "Nar en güçlü antioksidanlardandır." },
+        { "gun": 14, "kahvalti": "2 yumurtalı menemen, 3 ceviz, bol yeşillik", "ogle_yemegi": "Bulgur pilavlı yeşil mercimek (müceddere), ayran", "ara_ogun": "5 adet kuru kayısı, 5 adet çiğ fındık", "aksam_yemegi": "Fırında çipura veya mezgit, haşlanmış patates (küçük boy)", "notlar": "Haftada en az 2 gün balık şarttır." },
+        { "gun": 15, "kahvalti": "Haşlanmış yumurta, beyaz peynir, avokado, tam tahıllı ekmek", "ogle_yemegi": "Zeytinyağlı yer elması veya kereviz, yoğurt", "ara_ogun": "1 fincan biberiye çayı (hafızayı canlandırır)", "aksam_yemegi": "Tavuk sote (sebzeli), bol salata", "notlar": "Biberiye kokusu ve çayı hafıza üzerinde etkilidir." },
+        { "gun": 16, "kahvalti": "Çırpılmış yumurta (zerdeçallı), 3 ceviz, 5 zeytin", "ogle_yemegi": "Kırmızı mercimek çorbası, ızgara sebzeler", "ara_ogun": "1 adet kivi, 10 adet çiğ badem", "aksam_yemegi": "Fırında patlıcan (yağsız/az yağlı), cacık", "notlar": "Zerdeçal karabiber ile tüketilmelidir (emilim için)." },
+        { "gun": 17, "kahvalti": "Yulaf, chia, keten tohumu ve yoğurt karışımı, üzerine ceviz", "ogle_yemegi": "Kıymalı ıspanak, üzerine sarımsaklı yoğurt", "ara_ogun": "2 kare bitter çikolata, yeşil çay", "aksam_yemegi": "Izgara somon veya hamsi tavası (az yağlı), roka", "notlar": "Düzenli uyku beslenmenin etkisini artırır." },
+        { "gun": 18, "kahvalti": "Sebzeli omlet, lor peyniri, tam buğday ekmeği", "ogle_yemegi": "Nohutlu salata (haşlanmış nohut, yeşillik, ceviz)", "ara_ogun": "1 adet armut", "aksam_yemegi": "Izgara tavuk şiş, az miktar bulgur, ayran", "notlar": "Baklagiller yavaş salınımlı glikoz sağlar." },
+        { "gun": 19, "kahvalti": "2 haşlanmış yumurta, 5 zeytin, 3 tam ceviz, maydanoz", "ogle_yemegi": "Zeytinyağlı taze fasulye, yoğurt", "ara_ogun": "1 avuç kabak çekirdeği", "aksam_yemegi": "Fırında kabak dizme (kıymalı), cacık", "notlar": "Kabak çekirdeği magnezyum zenginidir." },
+        { "gun": 20, "kahvalti": "Peynirli omlet, 1 dilim tam buğday ekmeği, domates", "ogle_yemegi": "Mercimek yemeği, mevsim salatası", "ara_ogun": "1 fincan matcha veya normal yeşil çay", "aksam_yemegi": "Izgara levrek, bol limonlu salata", "notlar": "Limon C vitamini ve ferahlık sağlar." },
+        { "gun": 21, "kahvalti": "Yulaf ezmesi, tarçın, fıstık ezmesi (şekersiz), ceviz", "ogle_yemegi": "Fırın tavuk baget, haşlanmış brokoli", "ara_ogun": "1 porsiyon çilek veya yaban mersini", "aksam_yemegi": "Zeytinyağlı pırasa, az miktar bulgur pilavı", "notlar": "Fıstık ezmesi E vitamini içerir." },
+        { "gun": 22, "kahvalti": "1 yumurta, bol lor peyniri, çörek otu, tam tahıllı ekmeği", "ogle_yemegi": "Kinoa veya bulgur salatası (bol yeşillikli)", "ara_ogun": "2 tam ceviz, 3 gün kurusu kayısı", "aksam_yemegi": "Etli bezelye yemeği, cacık", "notlar": "Bezelye B1 vitamini (tiamin) kaynağıdır." },
+        { "gun": 23, "kahvalti": "Zerdeçallı ve maydanozlu omlet, 5 zeytin, ceviz", "ogle_yemegi": "Izgara köfte, piyaz, ayran", "ara_ogun": "1 adet elma", "aksam_yemegi": "Fırın uskumru, bol roka ve soğan salatası", "notlar": "Uskumru yüksek EPA ve DHA içerir." },
+        { "gun": 24, "kahvalti": "Avokadolu ve yumurtalı tam buğday ekmeği sandviç", "ogle_yemegi": "Sebze çorbası, ızgara tavuk göğsü", "ara_ogun": "10 adet çiğ badem", "aksam_yemegi": "Zeytinyağlı enginar (garnitürlü), yoğurt", "notlar": "Enginar beyin detoksu için faydalıdır." },
+        { "gun": 25, "kahvalti": "2 haşlanmış yumurta, beyaz peynir, bol dereotu, 3 ceviz", "ogle_yemegi": "Kuru fasulye (az yağlı), az bulgur pilavı", "ara_ogun": "1 fincan sade kahve, 2 kare bitter çikolata", "aksam_yemegi": "Fırın hindi, haşlanmış kuşkonmaz veya Brüksel lahanası", "notlar": "Kolin seviyenizi yumurta ile koruyun." },
+        { "gun": 26, "kahvalti": "Mantar ve peynirli omlet, tam tahıllı ekmek, zeytin", "ogle_yemegi": "Ton balıklı salata, mısır yerine bol ceviz", "ara_ogun": "1 adet muz", "aksam_yemegi": "Ispanak yemeği, üzerine sarımsaklı yoğurt", "notlar": "Sarımsak nöroprotektif özelliklere sahiptir." },
+        { "gun": 27, "kahvalti": "Yulaf lapası, içine kakao tozu (şekersiz), ceviz ve chia", "ogle_yemegi": "Zeytinyağlı pırasa, yoğurt, az miktar bulgur", "ara_ogun": "1 avuç kabak çekirdeği", "aksam_yemegi": "Izgara bonfile veya köfte, fırın pancar salatası", "notlar": "Kakao flavanolleri kan akışını hızlandırır." },
+        { "gun": 28, "kahvalti": "Menemen, 1 dilim beyaz peynir, 3 ceviz, yeşillik", "ogle_yemegi": "Yeşil mercimek salatası (nar ekşili, cevizli)", "ara_ogun": "1 bardak domates suyu", "aksam_yemegi": "Fırın somon, haşlanmış karnabahar (zerdeçallı)", "notlar": "Haftanın son balık öğününü atlamayın." },
+        { "gun": 29, "kahvalti": "2 yumurta, lor peyniri, bol maydanoz, çörek otu", "ogle_yemegi": "Izgara tavuk, mevsim salatası, ayran", "ara_ogun": "10 adet fındık, 1 fincan yeşil çay", "aksam_yemegi": "Zeytinyağlı taze fasulye, yoğurt", "notlar": "Fındık E vitamini (beyin yaşlanmasını önler) kaynağıdır." },
+        { "gun": 30, "kahvalti": "Yumurta, avokado, ceviz, tam buğday ekmeği", "ogle_yemegi": "Etli nohut yemeği, cacık", "ara_ogun": "2 kare bitter çikolata, yarım muz", "aksam_yemegi": "Fırında karışık sebze (kabak, patlıcan, biber) ve ızgara köfte", "notlar": "Birinci ayı başarıyla tamamladınız." },
+        { "gun": 31, "kahvalti": "2 yumurtalı biberli omlet, 4 tam ceviz, süzme peynir, maydanoz", "ogle_yemegi": "Zeytinyağlı taze fasulye, 3 yemek kaşığı bulgur, yoğurt", "ara_ogun": "1 fincan biberiye çayı, 10 adet çiğ badem", "aksam_yemegi": "Fırın levrek (biberiyeli), roka ve tere salatası", "notlar": "Biberiye kokusu ve tüketimi hafıza geri çağırma hızını destekler." },
+        { "gun": 32, "kahvalti": "Yulaf ezmesi, içine 1 tatlı kaşığı keten tohumu ve dondurulmuş böğürtlen/yaban mersini", "ogle_yemegi": "Izgara hindi, bol yeşil salata (avokado ilaveli)", "ara_ogun": "1 adet portakal", "aksam_yemegi": "Kıymalı mercimek yemeği, ev yapımı yoğurt", "notlar": "Antosiyaninler (meyvelerdeki mor renk) kan-beyin bariyerini geçer." },
+        { "gun": 33, "kahvalti": "Haşlanmış yumurta, lor peyniri üzerine çörek otu ve sızma zeytinyağı, tam buğday ekmeği", "ogle_yemegi": "Zeytinyağlı enginar, bol dereotu, ayran", "ara_ogun": "2 kare bitter çikolata (%80 kakao)", "aksam_yemegi": "Fırında kabak ve havuç, yanına ızgara köfte", "notlar": "Enginar karaciğer fonksiyonlarını optimize ederek beyin sisi ihtimalini düşürür." },
+        { "gun": 34, "kahvalti": "Menemen (soğanlı), 3 tam ceviz, bol roka", "ogle_yemegi": "Kinoa veya ince bulgur ile hazırlanmış kısır (turşusuz), bol marul", "ara_ogun": "1 avuç kabak çekirdeği", "aksam_yemegi": "Fırında somon veya palamut, buharda brokoli", "notlar": "Magnezyum zengini kabak çekirdeği uyku kalitesini ve öğrenmeyi destekler." },
+        { "gun": 35, "kahvalti": "Yulaf lapası (su ile), fıstık ezmesi (şekersiz), tarçın, çiğ fındık", "ogle_yemegi": "Izgara tavuk göğsü, mevsim salatası, 1 dilim tam tahıl ekmeği", "ara_ogun": "1 adet elma", "aksam_yemegi": "Zeytinyağlı bamya veya pırasa, yoğurt", "notlar": "Düşük glisemik indeks, gün boyu stabil beyin enerjisi sağlar." },
+        { "gun": 36, "kahvalti": "2 haşlanmış yumurta, 5 zeytin, dil peyniri, domates", "ogle_yemegi": "Mercimek çorbası, haşlanmış tavuklu salata", "ara_ogun": "1 fincan yeşil çay, 2 tam ceviz", "aksam_yemegi": "Fırında uskumru, bol soğanlı ve limonlu roka salatası", "notlar": "Uskumru, beyin yapısının %60'ını oluşturan yağlar için kritik DHA kaynağıdır." },
+        { "gun": 37, "kahvalti": "Mantar ve soğanlı omlet, lor peyniri, tam buğday ekmeği", "ogle_yemegi": "Etsiz nohut yemeği, az miktar bulgur pilavı, cacık (dereotlu)", "ara_ogun": "1 porsiyon yaban mersini", "aksam_yemegi": "Izgara hindi, fırın pancar dilimleri", "notlar": "Pancar içeriğindeki nitratlar beyne giden kan akışını hızlandırır." },
+        { "gun": 38, "kahvalti": "Çırpılmış yumurta (zerdeçallı), 4 ceviz, yeşillik", "ogle_yemegi": "Zeytinyağlı yer elması, yoğurt", "ara_ogun": "10 adet çiğ badem", "aksam_yemegi": "Kıymalı ıspanak, üzerine sarımsaklı yoğurt", "notlar": "Ispanaktaki K vitamini bilişsel gerilemeyi yavaşlatır." },
+        { "gun": 39, "kahvalti": "Yulaf ezmesi, chia tohumu, yoğurt, mevsim meyvesi", "ogle_yemegi": "Izgara köfte, bol salata, ayran", "ara_ogun": "2 kare bitter çikolata", "aksam_yemegi": "Fırın çipura, brokoli ve sarımsaklı zeytinyağı sosu", "notlar": "Sarımsak, nöronları oksidatif strese karşı korur." },
+        { "gun": 40, "kahvalti": "Haşlanmış yumurta, avokado, tam tahıllı ekmek, beyaz peynir", "ogle_yemegi": "Kırmızı mercimek yemeği, mevsim salatası", "ara_ogun": "1 adet kivi", "aksam_yemegi": "Tavuk sote (sebzeli), az miktar basmati pirinç veya bulgur", "notlar": "Kivi, serotonin öncülü olarak zihinsel dengeyi destekler." },
+        { "gun": 41, "kahvalti": "Peynirli tam buğday tost (yağsız), 5 zeytin, 3 ceviz", "ogle_yemegi": "Zeytinyağlı bakla veya taze fasulye, yoğurt", "ara_ogun": "1 fincan sade kahve (kafein + polifenol)", "aksam_yemegi": "Fırında palamut, roka salatası", "notlar": "Haftada en az 2 gün yağlı balık tüketimi kuralı devam etmeli." },
+        { "gun": 42, "kahvalti": "2 yumurta ile menemen, bol dereotu, lor peyniri", "ogle_yemegi": "Izgara tavuk salatası, ceviz içi ilaveli", "ara_ogun": "1 avuç kabak çekirdeği", "aksam_yemegi": "Zeytinyağlı karnabahar, yoğurt (zerdeçal eklenmiş)", "notlar": "Zerdeçal ve yoğurt kombinasyonu enflamasyonu düşürür." },
+        { "gun": 43, "kahvalti": "Yulaf lapası, keten tohumu, fındık, tarçın", "ogle_yemegi": "Yeşil mercimek yemeği, bol limonlu salata", "ara_ogun": "1 adet armut", "aksam_yemegi": "Fırın köfte, haşlanmış Brüksel lahanası veya kuşkonmaz", "notlar": "B12 ve demir seviyeleri için kırmızı et (köfte/bonfile) haftada 2 kez önemlidir." },
+        { "gun": 44, "kahvalti": "Haşlanmış yumurta, süzme peynir, 4 ceviz, maydanoz-nane", "ogle_yemegi": "Zeytinyağlı kereviz (portakal sulu), yoğurt", "ara_ogun": "10 adet çiğ antep fıstığı", "aksam_yemegi": "Izgara somon, roka ve kırmızı soğan salatası", "notlar": "Kırmızı soğan, hafıza koruyucu quercetin içerir." },
+        { "gun": 45, "kahvalti": "Zerdeçallı omlet, tam buğday ekmeği, 5 zeytin", "ogle_yemegi": "Izgara hindi, az bulgur pilavı, ayran", "ara_ogun": "2 kare bitter çikolata", "aksam_yemegi": "Zeytinyağlı ıspanak, yoğurt", "notlar": "Hindi eti, odaklanma için gerekli olan tirozin amino asidini sağlar." },
+        { "gun": 46, "kahvalti": "Yulaf ezmesi, yoğurt, çiğ badem, yaban mersini", "ogle_yemegi": "Mercimek çorbası, lor peynirli salata", "ara_ogun": "1 adet muz", "aksam_yemegi": "Fırın levrek, haşlanmış patates (orta boy)", "notlar": "Kompleks karbonhidratlar beynin ana yakıtıdır." },
+        { "gun": 47, "kahvalti": "2 yumurta, beyaz peynir, 3 ceviz, domates, biber", "ogle_yemegi": "Zeytinyağlı barbunya, mevsim salatası", "ara_ogun": "1 fincan yeşil çay", "aksam_yemegi": "Izgara tavuk şiş, fırın sebze (kabak, patlıcan)", "notlar": "Baklagillerdeki lifler bağırsak-beyin aksını destekler." },
+        { "gun": 48, "kahvalti": "Avokadolu ve yumurtalı tam buğday tost, yeşillik", "ogle_yemegi": "Ton balıklı salata (bol yeşillikli, mısırsız)", "ara_ogun": "1 avuç kabak çekirdeği", "aksam_yemegi": "Etli bezelye yemeği, cacık", "notlar": "Bezelye, sinir iletimi için gerekli olan B1 vitamini içerir." },
+        { "gun": 49, "kahvalti": "Yulaf lapası, fıstık ezmesi, ceviz, chia tohumu", "ogle_yemegi": "Zeytinyağlı enginar, yoğurt", "ara_ogun": "1 adet portakal", "aksam_yemegi": "Fırın uskumru, bol roka salatası", "notlar": "Dengeli C vitamini alımı, oksidatif hasarı önler." },
+        { "gun": 50, "kahvalti": "2 yumurta (haşlanmış), 5 zeytin, lor peyniri, çörek otu", "ogle_yemegi": "Kıymalı ıspanak, az bulgur, ayran", "ara_ogun": "2 kare bitter çikolata", "aksam_yemegi": "Izgara hindi, buharda brokoli ve havuç", "notlar": "50. günde beyin fonksiyonlarında berraklık artışı gözlenmelidir." },
+        { "gun": 51, "kahvalti": "Mantar ve süzme peynirli omlet, 4 ceviz, yeşillik", "ogle_yemegi": "Nohut yemeği, mevsim salatası", "ara_ogun": "1 fincan sade kahve", "aksam_yemegi": "Fırın çipura, soğanlı roka salatası", "notlar": "Kafein, kısa süreli hafıza performansını optimize eder." },
+        { "gun": 52, "kahvalti": "Yulaf, yoğurt, keten tohumu, çiğ badem", "ogle_yemegi": "Izgara köfte, bol salata, 1 dilim tam buğday ekmeği", "ara_ogun": "1 adet elma", "aksam_yemegi": "Zeytinyağlı taze fasulye, yoğurt", "notlar": "Akşam yemeğinde hafif beslenme, gece nöronal onarımı kolaylaştırır." },
+        { "gun": 53, "kahvalti": "Haşlanmış yumurta, beyaz peynir, avokado, tam tahıllı ekmek", "ogle_yemegi": "Zeytinyağlı kereviz, ayran", "ara_ogun": "10 adet çiğ fındık", "aksam_yemegi": "Fırın tavuk, haşlanmış karnabahar (limonlu)", "notlar": "Karnabahar, hafıza için önemli olan kolin bileşiğini içerir." },
+        { "gun": 54, "kahvalti": "2 yumurtalı menemen, 3 ceviz, bol roka", "ogle_yemegi": "Kırmızı mercimek yemeği, mevsim salatası", "ara_ogun": "1 avuç kabak çekirdeği", "aksam_yemegi": "Izgara somon, buharda kuşkonmaz veya brokoli", "notlar": "Kuşkonmaz folat zenginidir; beyin yaşlanmasına karşı direnç sağlar." },
+        { "gun": 55, "kahvalti": "Yulaf lapası, chia, tarçın, dondurulmuş meyve", "ogle_yemegi": "Izgara hindi, az miktar bulgur, yoğurt", "ara_ogun": "2 kare bitter çikolata", "aksam_yemegi": "Zeytinyağlı bamya, bol salata", "notlar": "Zengin lif içeriği bağırsak mikrobiyotasını (beyin ortağı) korur." },
+        { "gun": 56, "kahvalti": "2 haşlanmış yumurta, lor peyniri, 4 ceviz, maydanoz", "ogle_yemegi": "Zeytinyağlı enginar, cacık", "ara_ogun": "1 adet kivi", "aksam_yemegi": "Izgara levrek veya palamut, roka salatası", "notlar": "Yüksek Omega-3 alımı sinaptik hızı artırır." },
+        { "gun": 57, "kahvalti": "Peynirli omlet, 5 zeytin, tam buğday ekmeği, domates", "ogle_yemegi": "Mercimek çorbası, haşlanmış tavuklu salata", "ara_ogun": "10 adet çiğ badem", "aksam_yemegi": "Kıymalı ıspanak, yoğurt", "notlar": "Demir eksikliği konsantrasyon kaybına yol açar; ıspanak + et önemlidir." },
+        { "gun": 58, "kahvalti": "Yulaf, yoğurt, fındık, keten tohumu", "ogle_yemegi": "Izgara köfte, bol salata, ayran", "ara_ogun": "1 adet portakal", "aksam_yemegi": "Zeytinyağlı taze fasulye, 2 kaşık bulgur", "notlar": "Portakal flavonoidleri hafıza fonksiyonunu keskinleştirir." },
+        { "gun": 59, "kahvalti": "2 yumurta (zerdeçallı çırpılmış), 3 ceviz, yeşillik", "ogle_yemegi": "Nohut salatası (bol yeşillikli), tam tahıllı ekmek", "ara_ogun": "1 fincan yeşil çay", "aksam_yemegi": "Fırın uskumru, bol soğan ve roka", "notlar": "Uskumru içeriğindeki B12 sinir kılıflarını (miyelin) onarır." },
+        { "gun": 60, "kahvalti": "Avokadolu yumurtalı tam buğday tost, beyaz peynir, zeytin", "ogle_yemegi": "Zeytinyağlı kereviz, yoğurt", "ara_ogun": "1 avuç kabak çekirdeği, 2 kare bitter çikolata", "aksam_yemegi": "Etli mercimek yemeği, cacık", "notlar": "60. gün sonunda dopamin dengesi ve odaklanma süresi stabil hale gelir." },
+        { "gun": 61, "kahvalti": "2 haşlanmış yumurta, 4 tam ceviz, bol dereotu ve maydanoz, lor peyniri", "ogle_yemegi": "Zeytinyağlı taze fasulye, 3 yemek kaşığı bulgur, yoğurt", "ara_ogun": "1 fincan biberiye çayı, 10 adet çiğ badem", "aksam_yemegi": "Izgara Levrek, roka ve kırmızı soğan salatası", "notlar": "Biberiye, asetilkolin parçalanmasını önleyerek hafızayı destekler." },
+        { "gun": 62, "kahvalti": "Yulaf ezmesi, chia tohumu, dondurulmuş yaban mersini, tarçın", "ogle_yemegi": "Izgara hindi göğsü, mevsim salatası, ayran", "ara_ogun": "1 adet elma, 2 tam ceviz", "aksam_yemegi": "Zeytinyağlı pırasa, 1 dilim tam buğday ekmeği, yoğurt", "notlar": "Hindi eti, motivasyon hormonu dopamin için gerekli olan tirozini sağlar." },
+        { "gun": 63, "kahvalti": "Zerdeçallı omlet, 5 zeytin, beyaz peynir, domates-biber", "ogle_yemegi": "Nohut yemeği (etli veya etsiz), az miktar bulgur, cacık", "ara_ogun": "2 kare bitter çikolata (%80 kakao)", "aksam_yemegi": "Fırında sebze dizme (kabak, patlıcan, biber), sarımsaklı yoğurt", "notlar": "Zerdeçal ve karabiber kombinasyonu nöro-enflamasyonu azaltır." },
+        { "gun": 64, "kahvalti": "Haşlanmış yumurta, avokado (çeyrek), tam tahıllı ekmek, yeşillik", "ogle_yemegi": "Ton balıklı salata (yeşillik ve ceviz ağırlıklı)", "ara_ogun": "1 avuç kabak çekirdeği", "aksam_yemegi": "Fırın uskumru veya sardalya, bol roka salatası", "notlar": "Haftada 2-3 kez yağlı balık tüketimi miyelin kılıf sağlığı için kritiktir." },
+        { "gun": 65, "kahvalti": "Yulaf lapası, fıstık ezmesi (şekersiz), keten tohumu, çiğ fındık", "ogle_yemegi": "Zeytinyağlı enginar, yoğurt, az miktar esmer pirinç veya bulgur", "ara_ogun": "1 adet portakal veya kivi", "aksam_yemegi": "Izgara tavuk şiş, haşlanmış brokoli (sarımsaklı zeytinyağı ile)", "notlar": "C vitamini beyindeki oksidatif stresi temizler." },
+        { "gun": 66, "kahvalti": "2 yumurtalı menemen, 3 ceviz, lor peyniri, nane", "ogle_yemegi": "Kırmızı mercimek çorbası, ızgara köfte, bol salata", "ara_ogun": "1 fincan yeşil çay, 5-6 adet çiğ kaju", "aksam_yemegi": "Ispanak yemeği, yoğurt", "notlar": "Ispanak ve yeşil yapraklı sebzeler K vitamini deposudur." },
+        { "gun": 67, "kahvalti": "Peynirli tam buğday tost, 5 zeytin, 3 ceviz, salatalık", "ogle_yemegi": "Zeytinyağlı barbunya, mevsim salatası, ayran", "ara_ogun": "1 adet muz (küçük boy)", "aksam_yemegi": "Fırın somon veya çipura, kuşkonmaz veya fırın patates (küçük)", "notlar": "Somondaki astaksantin maddesi beyin hücrelerini korur." },
+        { "gun": 68, "kahvalti": "Mantar ve soğanlı omlet, beyaz peynir, bol maydanoz", "ogle_yemegi": "Sebzeli hindi sote, az bulgur, yoğurt", "ara_ogun": "10 adet çiğ badem", "aksam_yemegi": "Zeytinyağlı kereviz, bol dereotu, cacık", "notlar": "Kereviz, sinir sistemini yatıştıran apigenin bileşiği içerir." },
+        { "gun": 69, "kahvalti": "Haşlanmış yumurta, avokado, tam tahıllı ekmek, çörek otu", "ogle_yemegi": "Etli mercimek yemeği, mevsim salatası", "ara_ogun": "2 kare bitter çikolata", "aksam_yemegi": "Izgara levrek, bol yeşil salata", "notlar": "Çörek otu, antienflamatuar etkisiyle bilişsel hızı artırabilir." },
+        { "gun": 70, "kahvalti": "Yulaf ezmesi, yoğurt, ceviz, dondurulmuş meyve", "ogle_yemegi": "Fırın mücver (az unlu), beyaz peynir, ayran", "ara_ogun": "1 fincan sade kahve", "aksam_yemegi": "Izgara bonfile veya köfte, buharda sebzeler", "notlar": "Kırmızı et, sinir iletimi için elzem olan B12 vitamini kaynağıdır." },
+        { "gun": 71, "kahvalti": "2 yumurta, lor peyniri, bol yeşillik, 4 ceviz", "ogle_yemegi": "Zeytinyağlı taze fasulye, yoğurt, 1 dilim ekmek", "ara_ogun": "1 avuç kabak çekirdeği", "aksam_yemegi": "Fırında uskumru, roka ve soğan salatası", "notlar": "Kabak çekirdeği magnezyum ve çinko zenginidir." },
+        { "gun": 72, "kahvalti": "Sebzeli omlet, 5 zeytin, beyaz peynir, domates", "ogle_yemegi": "Izgara tavuk salatası (ceviz ve elma dilimli)", "ara_ogun": "1 adet armut", "aksam_yemegi": "Kıymalı ıspanak, yoğurt", "notlar": "Demir eksikliği bilişsel yorgunluğun ana sebebidir." },
+        { "gun": 73, "kahvalti": "Yulaf lapası, keten tohumu, fıstık ezmesi, tarçın", "ogle_yemegi": "Nohut yemeği, az bulgur, cacık", "ara_ogun": "2 kare bitter çikolata", "aksam_yemegi": "Izgara somon veya levrek, roka salatası", "notlar": "Tarçın kan şekerini dengeleyerek odaklanma süresini uzatır." },
+        { "gun": 74, "kahvalti": "2 yumurtalı menemen, beyaz peynir, 3 ceviz", "ogle_yemegi": "Zeytinyağlı enginar, yoğurt, mevsim salatası", "ara_ogun": "10 adet çiğ antep fıstığı", "aksam_yemegi": "Fırın tavuk, fırın pancar ve havuç", "notlar": "Pancardaki nitratlar beyne oksijen taşıyan kan akışını artırır." },
+        { "gun": 75, "kahvalti": "Haşlanmış yumurta, lor peyniri, çörek otu, tam buğday ekmeği", "ogle_yemegi": "Kırmızı mercimek yemeği, ayran, bol salata", "ara_ogun": "1 adet kivi", "aksam_yemegi": "Izgara köfte, piyaz (bol soğan ve maydanozlu)", "notlar": "Piyazdaki soğan ve maydanoz, güçlü flavonoid kaynaklarıdır." },
+        { "gun": 76, "kahvalti": "Yulaf ezmesi, yoğurt, ceviz, chia", "ogle_yemegi": "Zeytinyağlı taze fasulye, yoğurt, az miktar bulgur", "ara_ogun": "1 fincan biberiye çayı", "aksam_yemegi": "Fırın palamut veya uskumru, bol roka salatası", "notlar": "Uskumru Omega-3 içeriği en yüksek balıklardandır." },
+        { "gun": 77, "kahvalti": "Zerdeçallı omlet, 5 zeytin, peynir, yeşillik", "ogle_yemegi": "Izgara hindi, mevsim salatası, ayran", "ara_ogun": "1 adet elma, 2 tam ceviz", "aksam_yemegi": "Zeytinyağlı bamya, yoğurt, 1 dilim tam buğday ekmeği", "notlar": "Hindi eti, serotonin üretimi için triptofan içerir." },
+        { "gun": 78, "kahvalti": "Haşlanmış yumurta, avokado, lor peyniri, tam tahıllı ekmek", "ogle_yemegi": "Etsiz nohut yemeği, cacık, bol yeşillik", "ara_ogun": "2 kare bitter çikolata", "aksam_yemegi": "Tavuk sote, haşlanmış karnabahar (zerdeçallı)", "notlar": "Karnabahar, hafıza için kritik olan kolin içerir." },
+        { "gun": 79, "kahvalti": "Mantar ve peynirli omlet, 3 ceviz, domates-biber", "ogle_yemegi": "Zeytinyağlı kereviz, yoğurt, az miktar bulgur", "ara_ogun": "1 avuç kabak çekirdeği", "aksam_yemegi": "Fırın somon, roka ve tere salatası", "notlar": "Magnezyum eksikliği unutkanlığa yol açabilir." },
+        { "gun": 80, "kahvalti": "Yulaf lapası, fıstık ezmesi, çiğ fındık, tarçın", "ogle_yemegi": "Izgara köfte, bol salata, ayran", "ara_ogun": "1 adet portakal", "aksam_yemegi": "Zeytinyağlı ıspanak, yoğurt", "notlar": "E vitamini (fındık) nöronları yaşlanmaya karşı korur." },
+        { "gun": 81, "kahvalti": "2 yumurta (haşlanmış), beyaz peynir, 4 ceviz, yeşillik", "ogle_yemegi": "Kırmızı mercimek yemeği, mevsim salatası, 1 dilim ekmek", "ara_ogun": "1 fincan yeşil çay", "aksam_yemegi": "Izgara levrek veya palamut, bol soğan ve roka", "notlar": "Soğan, beyindeki hipokampus bölgesini oksidasyondan korur." },
+        { "gun": 82, "kahvalti": "Sebzeli omlet, 5 zeytin, beyaz peynir, domates", "ogle_yemegi": "Zeytinyağlı enginar, yoğurt, ayran", "ara_ogun": "10 adet çiğ badem", "aksam_yemegi": "Fırın tavuk, haşlanmış sebzeler", "notlar": "Enginar, sinir iletimi üzerinde dolaylı olumlu etkiye sahiptir." },
+        { "gun": 83, "kahvalti": "Yulaf, yoğurt, keten tohumu, dondurulmuş meyve", "ogle_yemegi": "Izgara hindi salatası, ceviz içi ilaveli", "ara_ogun": "2 kare bitter çikolata", "aksam_yemegi": "Kıymalı mercimek yemeği, cacık", "notlar": "Keten tohumu bitkisel Omega-3 (ALA) kaynağıdır." },
+        { "gun": 84, "kahvalti": "2 yumurtalı menemen, 3 ceviz, peynir, nane", "ogle_yemegi": "Zeytinyağlı taze fasulye, yoğurt, az bulgur", "ara_ogun": "1 adet kivi", "aksam_yemegi": "Izgara somon veya uskumru, roka salatası", "notlar": "Kivi, serotonin sentezini destekleyen B6 vitamini içerir." },
+        { "gun": 85, "kahvalti": "Haşlanmış yumurta, avokado, tam tahıllı ekmek, çörek otu", "ogle_yemegi": "Nohut yemeği, bol salata, ayran", "ara_ogun": "1 fincan sade kahve, 5 çiğ fındık", "aksam_yemegi": "Fırın köfte, haşlanmış brokoli and karnabahar", "notlar": "Kafein, kısa süreli işleme hafızasını güçlendirir." },
+        { "gun": 86, "kahvalti": "Yulaf lapası, fıstık ezmesi, ceviz, tarçın", "ogle_yemegi": "Sebzeli hindi sote, yoğurt, mevsim salatası", "ara_ogun": "1 avuç kabak çekirdeği", "aksam_yemegi": "Zeytinyağlı pırasa, yoğurt", "notlar": "Sülfürlü sebzeler (pırasa) beyin detoksu için faydalıdır." },
+        { "gun": 87, "kahvalti": "Zerdeçallı omlet, peynir, 5 zeytin, yeşillik", "ogle_yemegi": "Kıymalı ıspanak, yoğurt, 1 dilim ekmek", "ara_ogun": "1 adet portakal", "aksam_yemegi": "Izgara levrek, bol yeşil salata", "notlar": "Dengeli C vitamini bilişsel performansı sürdürülebilir kılar." },
+        { "gun": 88, "kahvalti": "Haşlanmış yumurta, beyaz peynir, 4 ceviz, dereotu", "ogle_yemegi": "Zeytinyağlı barbunya, mevsim salatası, ayran", "ara_ogun": "2 kare bitter çikolata", "aksam_yemegi": "Fırın tavuk, fırın pancar ve kabak", "notlar": "Pancardaki betalainler nöronal koruma sağlar." },
+        { "gun": 89, "kahvalti": "Yulaf ezmesi, yoğurt, chia, yaban mersini", "ogle_yemegi": "Izgara köfte, piyaz, bol maydanoz", "ara_ogun": "1 fincan yeşil çay", "aksam_yemegi": "Fırın uskumru veya sardalya, roka salatası", "notlar": "Maksimum Omega-3 yüklemesi için son günler önemlidir." },
+        { "gun": 90, "kahvalti": "2 yumurta, avokado, peynir, 3 ceviz, tam tahıllı ekmek", "ogle_yemegi": "Zeytinyağlı enginar, bol yoğurt, mevsim salatası", "ara_ogun": "1 adet elma, 1 avuç kabak çekirdeği, 2 kare bitter çikolata", "aksam_yemegi": "Izgara bonfile, haşlanmış brokoli, bol roka", "notlar": "90 günlük program tamamlandı; zihinsel netlik maksimize edilmiştir." }
+    ];
 
-    <script>
-        const generateProgram = () => {
-            const startDate = new Date("2026-01-12");
-            const plans = [];
-            
-            // Yemek havuzları - Çeşitliliği artırmak için farklı uzunluklarda listeler
-            const breakfasts = [
-                "2 rafadan yumurta, 5 tam ceviz, bol maydanoz-dereotu",
-                "Az yağlı lor peyniri, 1 adet kapya biber, 7 zeytin, 1 dilim siyez ekmeği",
-                "Ispanaklı ve mantarlı omlet (2 yumurta), bol roka",
-                "Yulaf ezmesi, 1 tatlı kaşığı keten tohumu, yarım yeşil elma, tarçın",
-                "Cılbır (2 haşlanmış yumurta üzerine sarımsaklı süzme yoğurt), taze nane",
-                "Çırpılmış yumurta, 3 tam ceviz, bol domates ve salatalık",
-                "Menemen (bol biberli), lor peyniri, 5 adet fındık"
-            ];
+    const App = {
+        state: {
+            startDate: localStorage.getItem('protocol_start') || '2026-01-12',
+            currentViewDay: 1,
+            completedDays: JSON.parse(localStorage.getItem('protocol_done') || '[]')
+        },
 
-            const lunches = [
-                "Zeytinyağlı enginar (garnitürsüz), 1 kase ev yoğurdu",
-                "Kırmızı mercimek çorbası, bol yeşil salata (limonlu)",
-                "Zeytinyağlı taze fasulye, 1 kase cacık (kuru naneli)",
-                "Nohut yemeği, mevsim salatası, 3 kaşık haşlanmış karabuğday",
-                "Fırında unsuz kabak mücver, 1 bardak ayran",
-                "Yeşil mercimek salatası (bol soğanlı ve maydanozlu)",
-                "Zeytinyağlı kereviz, 1 kase yoğurt",
-                "Etli pırasa yemeği (pirinçsiz), çoban salata"
-            ];
+        init() {
+            this.setupNavigation();
+            this.setupListeners();
+            this.setupGestures();
+            this.updateToday();
+            this.render();
+            lucide.createIcons();
+        },
 
-            const snacks = [
-                "1 avuç yaban mersini",
-                "1 adet orta boy havuç",
-                "2 kare bitter çikolata (%85+)",
-                "10 adet çiğ badem",
-                "1 adet portakal veya greyfurt",
-                "2 adet tam ceviz"
-            ];
+        setupNavigation() {
+            const burgerBtn = document.getElementById('burgerBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('menuOverlay');
 
-            const dinners = [
-                "Izgara Somon (Omega-3), haşlanmış brokoli",
-                "Fırında köfte (yağsız dana eti), közlenmiş patlıcan salatası",
-                "Fırında Palamut veya Lüfer, bol roka ve tere salatası",
-                "Izgara tavuk göğsü, fırınlanmış kuşkonmaz veya Brüksel lahanası",
-                "Etli bamya veya taze bezelye yemeği, az miktar süzme yoğurt",
-                "Izgara Cupra veya Levrek, mor lahana salatası",
-                "Hindi füme salatası (avokadolu ve bol yeşillikli)",
-                "Kıymalı ıspanak kavurması, 1 kase yoğurt",
-                "Izgara Sardalya (Omega-3), soğanlı marul salatası"
-            ];
+            const toggleMenu = () => {
+                mobileMenu.classList.toggle('open');
+                overlay.classList.toggle('open');
+                const isOpen = mobileMenu.classList.contains('open');
+                burgerBtn.innerHTML = isOpen ? '<i data-lucide="x"></i>' : '<i data-lucide="menu"></i>';
+                lucide.createIcons();
+            };
 
-            const exercises = [
-                { t: "Mobilite ve Eklem Hareketliliği", d: "15 dk eklem açma (boyun, omuz, kalça) + 5 dk 20-20-20 kuralı göz egzersizi." },
-                { t: "Kuvvet: Alt Vücut Odaklı", d: "3 set 15 Squat, 3 set 12 Lunge (her bacak), 60 sn statik Wall Sit." },
-                { t: "Kuvvet: Üst Vücut & Core", d: "3 set 12 Şınav (Push-up), 3 set 15 Plank-to-Pushup, 45 sn Side Plank." },
-                { t: "Fonksiyonel Core & Postür", d: "3 set 20 Mekik (Crunch), 3 set 15 Superman (sırt), 90 sn toplam Plank." },
-                { t: "Kardiyo: Yağ Yakımı (HIIT)", d: "20 dakika: 30 sn yüksek tempo yerinde koşu + 30 sn aktif dinlenme (yürüyüş)." }
-            ];
+            burgerBtn.onclick = toggleMenu;
+            overlay.onclick = toggleMenu;
+        },
 
-            for (let i = 0; i < 90; i++) {
-                const currentDate = new Date(startDate);
-                currentDate.setDate(startDate.getDate() + i);
-                
-                plans.push({
-                    gun: i + 1,
-                    tarih: currentDate.toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' }),
-                    beslenme: {
-                        k: breakfasts[i % breakfasts.length],
-                        o: lunches[i % lunches.length],
-                        a: snacks[i % snacks.length],
-                        aks: dinners[i % dinners.length]
-                    },
-                    egzersiz: exercises[i % exercises.length]
-                });
+        setupGestures() {
+            const container = document.getElementById('mainContent');
+            let startX = 0;
+            let isDragging = false;
+
+            const start = (e) => {
+                startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                isDragging = true;
+            };
+
+            const end = (e) => {
+                if (!isDragging) return;
+                const endX = e.type.includes('touch') ? e.changedTouches[0].clientX : e.clientX;
+                const diff = startX - endX;
+
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) this.nextDay();
+                    else this.prevDay();
+                }
+                isDragging = false;
+            };
+
+            container.addEventListener('touchstart', start, { passive: true });
+            container.addEventListener('touchend', end, { passive: true });
+            container.addEventListener('mousedown', start);
+            container.addEventListener('mouseup', end);
+        },
+
+        setupListeners() {
+            const startInput = document.getElementById('startInput');
+            startInput.value = this.state.startDate;
+            startInput.onchange = (e) => {
+                this.state.startDate = e.target.value;
+                localStorage.setItem('protocol_start', e.target.value);
+                this.updateToday();
+                this.render();
+            };
+
+            document.getElementById('mainTrackBtn').onclick = () => {
+                this.toggleDay(this.state.currentViewDay);
+            };
+
+            document.getElementById('resetBtn').onclick = () => {
+                if (confirm('İlerlemeyi sıfırlamak istediğine emin misin?')) {
+                    this.state.completedDays = [];
+                    localStorage.setItem('protocol_done', '[]');
+                    this.render();
+                }
+            };
+        },
+
+        async nextDay() {
+            if (this.state.currentViewDay < 90) {
+                await this.animateSlide('left');
+                this.state.currentViewDay++;
+                this.render();
+                this.scrollActive();
             }
-            return plans;
-        };
+        },
 
-        const programData = generateProgram();
-        let completedDays = JSON.parse(localStorage.getItem('completed_days_90_final')) || [];
-        let currentFilter = 'all';
-        let searchQuery = '';
+        async prevDay() {
+            if (this.state.currentViewDay > 1) {
+                await this.animateSlide('right');
+                this.state.currentViewDay--;
+                this.render();
+                this.scrollActive();
+            }
+        },
 
-        const updateStats = () => {
-            const total = programData.length;
-            const completed = completedDays.length;
-            const percentage = Math.round((completed / total) * 100);
-            document.getElementById('progress-bar').style.width = percentage + '%';
-            document.getElementById('stat-progress').innerText = '%' + percentage;
-        };
+        animateSlide(direction) {
+            return new Promise(resolve => {
+                const container = document.getElementById('mainContent');
+                container.classList.add(direction === 'left' ? 'sliding-left' : 'sliding-right');
+                setTimeout(() => {
+                    container.classList.remove('sliding-left', 'sliding-right');
+                    resolve();
+                }, 300);
+            });
+        },
 
-        const toggleDay = (dayNum) => {
-            const index = completedDays.indexOf(dayNum);
-            if (index === -1) {
-                completedDays.push(dayNum);
+        updateToday() {
+            const s = new Date(this.state.startDate);
+            const n = new Date();
+            n.setHours(0, 0, 0, 0);
+            s.setHours(0, 0, 0, 0);
+            const diff = Math.floor((n - s) / (86400000)) + 1;
+            this.state.currentViewDay = Math.min(Math.max(1, diff), 90);
+        },
+
+        render() {
+            this.renderContent();
+            this.renderList();
+            this.updateStatus();
+            lucide.createIcons();
+        },
+
+        updateStatus() {
+            const val = document.getElementById('currentDayVal');
+            val.textContent = this.state.currentViewDay;
+
+            const d = new Date(this.state.startDate);
+            d.setDate(d.getDate() + (this.state.currentViewDay - 1));
+            document.getElementById('currentDateDisplay').textContent = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            const btn = document.getElementById('mainTrackBtn');
+            if (this.state.completedDays.includes(this.state.currentViewDay)) {
+                btn.textContent = "TAMAMLANDI ✓";
+                btn.style.background = "#ffffff";
+                btn.style.color = "#000000";
             } else {
-                completedDays.splice(index, 1);
+                btn.textContent = "TAMAMLANDI OLARAK İŞARETLE";
+                btn.style.background = "var(--primary)";
+                btn.style.color = "var(--bg)";
             }
-            localStorage.setItem('completed_days_90_final', JSON.stringify(completedDays));
-            render();
-        };
+        },
 
-        const setFilter = (filter) => {
-            currentFilter = filter;
-            document.querySelectorAll('[id^="btn-"]').forEach(btn => {
-                btn.classList.remove('bg-gray-900', 'text-white');
-                btn.classList.add('text-gray-500', 'hover:bg-gray-50');
-            });
-            const activeBtn = document.getElementById('btn-' + filter);
-            activeBtn.classList.remove('text-gray-500', 'hover:bg-gray-50');
-            activeBtn.classList.add('bg-gray-900', 'text-white');
-            render();
-        };
+        renderContent() {
+            const day = appData.find(d => d.gun === this.state.currentViewDay);
+            const container = document.getElementById('mainContent');
 
-        const handleSearch = () => {
-            searchQuery = document.getElementById('search-input').value.toLowerCase();
-            render();
-        };
+            const phase = this.state.currentViewDay <= 30 ? "ADAPTASYON" : (this.state.currentViewDay <= 60 ? "GELİŞİM" : "PERFORMANS");
 
-        const resetData = () => {
-            if (confirm('Tüm ilerlemeniz kalıcı olarak silinecek. Onaylıyor musunuz?')) {
-                completedDays = [];
-                localStorage.removeItem('completed_days_90_final');
-                render();
-            }
-        };
-
-        const render = () => {
-            const grid = document.getElementById('program-grid');
-            grid.innerHTML = '';
-
-            const filteredData = programData.filter(item => {
-                const isCompleted = completedDays.includes(item.gun);
-                const matchesFilter = 
-                    currentFilter === 'all' || 
-                    (currentFilter === 'completed' && isCompleted) || 
-                    (currentFilter === 'pending' && !isCompleted);
-                
-                const textPool = `${item.gun} ${item.tarih} ${item.egzersiz.t} ${item.beslenme.k} ${item.beslenme.aks} ${item.beslenme.o}`.toLowerCase();
-                const matchesSearch = textPool.includes(searchQuery);
-
-                return matchesFilter && matchesSearch;
-            });
-
-            if (filteredData.length === 0) {
-                const empty = document.createElement('div');
-                empty.className = 'empty-state shadow-sm';
-                empty.innerHTML = `
-                    <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-400">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            container.innerHTML = `
+                    <div class="day-info">
+                        <span class="phase-tag">${phase} EPİZODU</span>
+                        <h2 class="day-title">Protokol Günü ${day.gun}</h2>
                     </div>
-                    <h3 class="text-gray-800 font-bold text-lg">Sonuç Bulunamadı</h3>
-                    <p class="text-gray-500 text-sm mt-1">Arama terimini değiştirerek tekrar deneyin.</p>
+
+                    <div class="meal-grid">
+                        ${this.card('Kahvaltı', day.kahvalti, 'coffee')}
+                        ${this.card('Öğle Yemeği', day.ogle_yemegi, 'sun')}
+                        ${this.card('Ara Öğün', day.ara_ogun, 'zap')}
+                        ${this.card('Akşam Yemeği', day.aksam_yemegi, 'moon')}
+                    </div>
+
+                    <div class="notes-section">
+                        <i data-lucide="info" style="width: 24px; height: 24px;"></i>
+                        <div class="notes-content">
+                            <h4>GÜNCEL NOTLAR</h4>
+                            <p>${day.notlar}</p>
+                        </div>
+                    </div>
                 `;
-                grid.appendChild(empty);
-            } else {
-                filteredData.forEach(item => {
-                    const isCompleted = completedDays.includes(item.gun);
-                    const card = document.createElement('div');
-                    card.className = `card-transition bg-white rounded-2xl border-2 p-6 cursor-pointer select-none shadow-sm flex flex-col ${isCompleted ? 'completed-card' : 'border-gray-100 hover:border-blue-200 hover:shadow-md'}`;
-                    card.onclick = () => toggleDay(item.gun);
+        },
 
-                    card.innerHTML = `
-                        <div class="flex justify-between items-start mb-5">
-                            <div>
-                                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">GÜN ${item.gun}</span>
-                                <h3 class="text-lg font-bold text-gray-800 ${isCompleted ? 'line-through-text' : ''}">${item.tarih}</h3>
-                            </div>
-                            <div class="status-icon">
-                                ${isCompleted ? 
-                                    '<svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>' : 
-                                    '<div class="w-7 h-7 border-2 border-gray-200 rounded-full bg-gray-50"></div>'}
-                            </div>
-                        </div>
-                        
-                        <div class="space-y-5 flex-grow">
-                            <div class="space-y-3">
-                                <div class="flex items-center gap-2 text-[11px] font-bold text-blue-600 uppercase tracking-wider">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                                    Beslenme Çizelgesi
-                                </div>
-                                <div class="grid grid-cols-1 gap-1.5 text-sm">
-                                    <p class="${isCompleted ? 'line-through-text' : 'text-gray-700'}"><span class="font-bold text-gray-400 text-[10px] w-6 inline-block">S:</span> ${item.beslenme.k}</p>
-                                    <p class="${isCompleted ? 'line-through-text' : 'text-gray-700'}"><span class="font-bold text-gray-400 text-[10px] w-6 inline-block">Ö:</span> ${item.beslenme.o}</p>
-                                    <p class="${isCompleted ? 'line-through-text' : 'text-gray-700'}"><span class="font-bold text-gray-400 text-[10px] w-6 inline-block">A:</span> ${item.beslenme.a}</p>
-                                    <p class="${isCompleted ? 'line-through-text' : 'text-gray-700'}"><span class="font-bold text-gray-400 text-[10px] w-6 inline-block">AK:</span> ${item.beslenme.aks}</p>
-                                </div>
-                            </div>
+        card(title, content, icon) {
+            return `
+                    <div class="meal-card">
+                        <div class="meal-type"><i data-lucide="${icon}" style="width: 14px;"></i> ${title}</div>
+                        <div class="meal-content">${content}</div>
+                    </div>
+                `;
+        },
 
-                            <div class="pt-4 border-t border-gray-100 space-y-3">
-                                <div class="flex items-center gap-2 text-[11px] font-bold text-orange-600 uppercase tracking-wider">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                                    ${item.egzersiz.t}
-                                </div>
-                                <p class="text-xs leading-relaxed font-medium ${isCompleted ? 'line-through-text' : 'text-gray-600'}">${item.egzersiz.d}</p>
-                            </div>
-                        </div>
+        renderList() {
+            const picker = document.getElementById('dayPicker');
+            picker.innerHTML = '';
+            appData.forEach(d => {
+                const item = document.createElement('div');
+                item.className = `day-item ${d.gun === this.state.currentViewDay ? 'active' : ''} ${this.state.completedDays.includes(d.gun) ? 'completed' : ''}`;
+                item.innerHTML = `
+                        <span>GÜN ${d.gun}</span>
+                        ${this.state.completedDays.includes(d.gun) ? '<i data-lucide="check" style="width:14px"></i>' : ''}
                     `;
-                    grid.appendChild(card);
-                });
-            }
-            updateStats();
-        };
+                item.onclick = () => {
+                    this.state.currentViewDay = d.gun;
+                    this.render();
+                    item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                };
+                picker.appendChild(item);
+            });
+        },
 
-        render();
-    </script>
+        toggleDay(day) {
+            if (this.state.completedDays.includes(day)) {
+                this.state.completedDays = this.state.completedDays.filter(x => x !== day);
+            } else {
+                this.state.completedDays.push(day);
+            }
+            localStorage.setItem('protocol_done', JSON.stringify(this.state.completedDays));
+            this.render();
+        }
+    };
+
+    App.init();
+</script>
 </body>
+
 </html>
